@@ -1,19 +1,42 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
-const Contact = require('../models/Contact');
+const {
+  NotificationService,
+  DiscordNotificationService,
+  TelegramNotificationService,
+  WebhookNotificationService
+} = require('../notification-services');
+const simpleStorage = require('../simple-storage');
 const router = express.Router();
 
+// Try to use MongoDB, fallback to simple storage
+let Contact = null;
+let useSimpleStorage = false;
+
+try {
+  Contact = require('../models/Contact');
+} catch (error) {
+  console.log('📝 Using simple storage (MongoDB not available)');
+  useSimpleStorage = true;
+}
+
 // Configure nodemailer transporter
-const transporter = nodemailer.createTransporter({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+};
 
 // POST /api/contact - Submit contact form
 router.post('/', [
@@ -37,58 +60,134 @@ router.post('/', [
 
     const { name, email, subject, message } = req.body;
 
-    // Save contact to database
-    const contact = new Contact({
-      name,
-      email,
-      subject,
-      message,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent') || ''
-    });
+    // Save contact to database or simple storage
+    let contact;
+    
+    if (useSimpleStorage || !Contact) {
+      // Use simple storage
+      contact = simpleStorage.saveContact({
+        name,
+        email,
+        subject,
+        message,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent') || ''
+      });
+      console.log('💾 Contact saved to simple storage:', contact.id);
+    } else {
+      // Use MongoDB
+      try {
+        contact = new Contact({
+          name,
+          email,
+          subject,
+          message,
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent') || ''
+        });
+        await contact.save();
+        console.log('🎉 Contact saved to MongoDB:', contact._id);
+      } catch (dbError) {
+        console.log('📝 MongoDB failed, using simple storage:', dbError.message);
+        contact = simpleStorage.saveContact({
+          name,
+          email,
+          subject,
+          message,
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent') || ''
+        });
+      }
+    }
 
-    await contact.save();
-
-    // Send email notification
+    // Send notifications through multiple channels
     try {
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: process.env.EMAIL_USER,
-        subject: `Portfolio Contact: ${subject}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
-              New Contact Form Submission
-            </h2>
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Subject:</strong> ${subject}</p>
-              <p><strong>Message:</strong></p>
-              <div style="background-color: white; padding: 15px; border-left: 4px solid #007bff; margin-top: 10px;">
-                ${message.replace(/\n/g, '<br>')}
+      const notificationService = new NotificationService();
+      
+      // Add Discord webhook notification if configured
+      if (process.env.DISCORD_WEBHOOK_URL) {
+        notificationService.addService(
+          new DiscordNotificationService(process.env.DISCORD_WEBHOOK_URL)
+        );
+      }
+      
+      // Add Telegram notification if configured
+      if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+        notificationService.addService(
+          new TelegramNotificationService(
+            process.env.TELEGRAM_BOT_TOKEN,
+            process.env.TELEGRAM_CHAT_ID
+          )
+        );
+      }
+      
+      // Add IFTTT webhook for phone notification if configured
+      if (process.env.IFTTT_WEBHOOK_URL) {
+        notificationService.addService(
+          new WebhookNotificationService(process.env.IFTTT_WEBHOOK_URL)
+        );
+      }
+      
+      // Send notifications if any services are configured
+      if (notificationService.services.length > 0) {
+        const notificationResults = await notificationService.sendNotification({
+          name,
+          email,
+          subject,
+          message,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log('Notification results:', notificationResults);
+      }
+      
+      // Still try email notification as fallback
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        const transporter = createTransporter();
+        
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: process.env.NOTIFICATION_EMAIL || 'abhishekkumarsingh5914@gmail.com',
+          subject: `Portfolio Contact: ${subject}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
+                New Contact Form Submission
+              </h2>
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Subject:</strong> ${subject}</p>
+                <p><strong>Message:</strong></p>
+                <div style="background-color: white; padding: 15px; border-left: 4px solid #007bff; margin-top: 10px;">
+                  ${message.replace(/\n/g, '<br>')}
+                </div>
+              </div>
+              <div style="color: #666; font-size: 12px; margin-top: 20px;">
+                <p>IP Address: ${req.ip}</p>
+                <p>User Agent: ${req.get('User-Agent') || 'N/A'}</p>
+                <p>Submitted: ${new Date().toLocaleString()}</p>
               </div>
             </div>
-            <div style="color: #666; font-size: 12px; margin-top: 20px;">
-              <p>IP Address: ${req.ip}</p>
-              <p>User Agent: ${req.get('User-Agent') || 'N/A'}</p>
-              <p>Submitted: ${new Date().toLocaleString()}</p>
-            </div>
-          </div>
-        `
-      };
+          `
+        };
 
-      await transporter.sendMail(mailOptions);
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
-      // Don't fail the request if email fails
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.messageId);
+      } else {
+        console.warn('No notification services configured!');
+      }
+      
+    } catch (notificationError) {
+      console.error('Notification sending failed:', notificationError.message);
+      // Don't fail the request if notifications fail
     }
 
     res.status(201).json({
       success: true,
       message: 'Thank you for your message! I will get back to you soon.',
       data: {
-        id: contact._id,
+        id: contact._id || contact.id,
         name: contact.name,
         email: contact.email,
         subject: contact.subject,
@@ -198,6 +297,48 @@ router.put('/:id', [
     res.status(500).json({
       success: false,
       message: 'Error updating contact',
+      error: error.message
+    });
+  }
+});
+
+// Test email route (for debugging)
+router.post('/test-email', async (req, res) => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email configuration not set in environment variables'
+      });
+    }
+
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.NOTIFICATION_EMAIL || 'abhishekkumarsingh5914@gmail.com',
+      subject: 'Portfolio Email Test',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Email Test Successful!</h2>
+          <p>This is a test email from your portfolio website.</p>
+          <p>If you received this, your email configuration is working correctly.</p>
+          <p>Sent at: ${new Date().toLocaleString()}</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    
+    res.json({
+      success: true,
+      message: 'Test email sent successfully',
+      messageId: info.messageId
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send test email',
       error: error.message
     });
   }

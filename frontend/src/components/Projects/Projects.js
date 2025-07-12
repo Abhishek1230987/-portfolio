@@ -50,29 +50,9 @@ const Projects = () => {
       status: 'completed',
       githubUrl: 'https://github.com/abhisheksingh/cyber-commerce',
       liveUrl: 'https://cyber-commerce.com'
-    },
-    {
-      _id: '3',
-      title: 'AI Task Orchestrator',
-      description: 'An intelligent task management system powered by machine learning algorithms for automatic task prioritization.',
-      technologies: ['Vue.js', 'Python', 'FastAPI', 'TensorFlow', 'Socket.io'],
-      category: 'ai',
-      featured: true,
-      status: 'completed',
-      githubUrl: 'https://github.com/abhisheksingh/ai-task-orchestrator',
-      liveUrl: 'https://ai-tasks.io'
-    },
-    {
-      _id: '4',
-      title: 'Quantum Analytics Dashboard',
-      description: 'Real-time data visualization platform with quantum-inspired algorithms for pattern recognition and predictive analytics.',
-      technologies: ['D3.js', 'WebGL', 'Python', 'Apache Kafka'],
-      category: 'web',
-      featured: true,
-      status: 'completed',
-      githubUrl: 'https://github.com/abhisheksingh/quantum-analytics',
-      liveUrl: 'https://quantum-analytics.tech'
     }
+    // Add more sample projects as needed
+    
   ];
 
   const getProjectIcon = (category) => {
@@ -163,12 +143,13 @@ const Projects = () => {
               </div>
 
               <div className="project-image">
-                <div className="project-placeholder">
-                  <i className={getProjectIcon(project.category)}></i>
-                  <div className="image-overlay">
-                    <div className="scan-line"></div>
-                  </div>
-                </div>
+              <div className="project-placeholder">
+                <img 
+                  src={`/images/projects/${project.title.toLowerCase().replace(/\s+/g, '')}.svg`} 
+                  alt={`${project.title} Thumbnail`} 
+                  className="project-thumbnail"
+                />
+              </div>
                 <div className="project-overlay">
                   <div className="project-links">
                     {project.liveUrl && (

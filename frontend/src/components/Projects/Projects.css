@@ -336,21 +336,18 @@
   height: 250px;
   position: relative;
   overflow: hidden;
-  background: 
-    linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%),
-    radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.1) 0%, transparent 70%);
+  background: #f5f5f5; /* Default background for project card */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .project-placeholder {
-  font-size: 4rem;
-  color: var(--primary-color);
-  opacity: 0.7;
-  transition: all 0.6s ease;
+  max-width: 100%;
+  max-height: 100%;
+  opacity: 0.9;
+  transition: transform 0.3s ease;
   transform-style: preserve-3d;
-  animation: iconFloat 4s ease-in-out infinite;
 }
 
 @keyframes iconFloat {
@@ -383,9 +380,22 @@
   100% { left: 100%; }
 }
 
+/* Project Thumbnail Styling */
+.project-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.project-card:hover .project-thumbnail {
+  transform: scale(1.05);
+  filter: brightness(1.1) saturate(1.2);
+}
+
 .project-card:hover .project-placeholder {
-  transform: scale(1.1) rotateY(20deg);
-  text-shadow: 0 0 30px var(--primary-color);
+  transform: scale(1.05);
 }
 
 /* Enhanced Project Overlay */
