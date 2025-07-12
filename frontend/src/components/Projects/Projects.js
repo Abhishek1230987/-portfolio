@@ -19,7 +19,7 @@ const Projects = () => {
       const response = await apiService.projects.getAll({ featured: true });
       setProjects(response.data || []);
     } catch (err) {
-      setError('Failed to load projects');
+      
       console.error('Error fetching projects:', err);
       // Fallback to sample data if API fails
       setProjects(getSampleProjects());
@@ -31,21 +31,21 @@ const Projects = () => {
   const getSampleProjects = () => [
     {
       _id: '1',
-      title: 'Neural Network Portfolio',
-      description: 'A cutting-edge portfolio website built with React and Node.js, featuring AI-powered animations and dynamic content management.',
-      technologies: ['React', 'Node.js', 'MongoDB', 'TensorFlow.js', 'Three.js'],
+      title: 'Threadsy',
+      description: 'A full-stack E-commerce site built with the MERN stack and Stripe for secure payments. Features include product browsing, user auth, cart management, and order tracking—delivering a complete, real-world shopping experience.',
+      technologies: ['React.js', 'Node.js','Express.js','Multer', 'MongoDB','JWT','bcrypt.js','Stripe','Razorpay'],
       category: 'web',
       featured: true,
       status: 'completed',
-      githubUrl: 'https://github.com/abhisheksingh/neural-portfolio',
+      githubUrl: 'https://github.com/Abhishek1230987/Threadsy',
       liveUrl: 'https://neural-portfolio.vercel.app'
     },
     {
       _id: '2',
-      title: 'CyberCommerce Platform',
-      description: 'A futuristic e-commerce platform with advanced product visualization, AR try-on features, and blockchain-based payments.',
-      technologies: ['Next.js', 'GraphQL', 'PostgreSQL', 'Redis', 'Docker'],
-      category: 'web',
+      title: 'MentorHub',
+      description: 'Created a scalable platform that could potentially serve thousands of users, with features designed for both individual learners and enterprise clients. The intuitive UX/UI design reduces onboarding friction while the robust feature set supports long-term user engagement.',
+      technologies: ['Next.js', 'Node.js', 'Express.js', 'MongoDB', 'Socket.io', 'WebRTC'],
+      category: 'ai',
       featured: true,
       status: 'completed',
       githubUrl: 'https://github.com/abhisheksingh/cyber-commerce',
@@ -125,7 +125,7 @@ const Projects = () => {
 
         {/* Project Filters */}
         <div className="project-filters">
-          {['all', 'web', 'ai', 'mobile', 'desktop'].map(category => (
+          {['all', 'web', 'ai'].map(category => (
             <button
               key={category}
               className={`filter-btn ${filter === category ? 'active' : ''}`}
