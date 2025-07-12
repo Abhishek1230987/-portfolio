@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/server.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
     },
     {
@@ -16,22 +16,15 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "frontend/build/static/$1"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|json|txt))",
-      "dest": "frontend/build/$1"
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/build/index.html"
+      "dest": "/frontend/$1"
     }
   ],
   "env": {
+    "DISCORD_WEBHOOK_URL": "@discord-webhook-url",
     "NODE_ENV": "production"
   }
 }

@@ -119,7 +119,7 @@ const Hero = () => {
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [mousePosition]);
+}, [mousePosition, canvasRef]);
   
   // Throttled mouse tracking for better performance
   const throttledMouseMove = useCallback((e) => {
@@ -229,7 +229,7 @@ const Hero = () => {
     
     const timer = setInterval(typeWriter, isDeleting ? 50 : 120);
     return () => clearInterval(timer);
-  }, [currentText]);
+}, [currentText, typewriterTexts]);
   
   // Hologram rotation effect
   useEffect(() => {

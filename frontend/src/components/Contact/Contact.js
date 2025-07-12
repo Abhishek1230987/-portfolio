@@ -1,7 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Contact.css';
 
 const Contact = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage('');
+
+    const formData = new FormData(e.target);
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      subject: formData.get('subject'),
+      message: formData.get('message')
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setMessage('✅ Message sent successfully! I\'ll get back to you soon.');
+        e.target.reset();
+      } else {
+        setMessage('❌ ' + (result.message || 'Failed to send message. Please try again.'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('❌ Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <section id="contact" className="contact section">
       <div className="container">
@@ -17,7 +58,7 @@ const Contact = () => {
               </div>
               <div className="contact-details">
                 <h3>Email</h3>
-                <p>abhishek@example.com</p>
+                <p>abhishekkumarsingh5914@gmail.com</p>
               </div>
             </div>
             <div className="contact-item">
@@ -40,22 +81,54 @@ const Contact = () => {
             </div>
           </div>
           <div className="contact-form">
-            <form>
+            {message && (
+              <div className={`form-message ${message.includes('✅') ? 'success' : 'error'}`}>
+                {message}
+              </div>
+            )}
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <input type="text" placeholder="Your Name" className="form-input" />
+                <input 
+                  type="text" 
+                  name="name" 
+                  placeholder="Your Name" 
+                  className="form-input" 
+                  required 
+                  disabled={isLoading}
+                />
               </div>
               <div className="form-group">
-                <input type="email" placeholder="Your Email" className="form-input" />
+                <input 
+                  type="email" 
+                  name="email" 
+                  placeholder="Your Email" 
+                  className="form-input" 
+                  required 
+                  disabled={isLoading}
+                />
               </div>
               <div className="form-group">
-                <input type="text" placeholder="Subject" className="form-input" />
+                <input 
+                  type="text" 
+                  name="subject" 
+                  placeholder="Subject" 
+                  className="form-input" 
+                  required 
+                  disabled={isLoading}
+                />
               </div>
               <div className="form-group">
-                <textarea placeholder="Your Message" className="form-input form-textarea"></textarea>
+                <textarea 
+                  name="message" 
+                  placeholder="Your Message" 
+                  className="form-input form-textarea" 
+                  required 
+                  disabled={isLoading}
+                ></textarea>
               </div>
-              <button type="submit" className="btn btn-primary">
-                <span>Send Message</span>
-                <i className="fas fa-paper-plane"></i>
+              <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                <span>{isLoading ? 'Sending...' : 'Send Message'}</span>
+                <i className={`fas ${isLoading ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}></i>
               </button>
             </form>
           </div>

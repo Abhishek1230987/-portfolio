@@ -10,7 +10,16 @@
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "deploy": "npm run build && npm start"
   },
-  "keywords": ["portfolio", "website", "discord", "notifications"],
+  "keywords": [
+    "portfolio",
+    "website",
+    "discord",
+    "notifications"
+  ],
   "author": "Abhishek Kumar Singh",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0"
+  }
 }

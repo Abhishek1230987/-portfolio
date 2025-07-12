@@ -6,7 +6,7 @@ const Skills = () => {
     <section id="skills" className="skills section">
       <div className="container">
         <div className="section-header">
-          <h2 className="section-title text-gradient">Skills & Expertise</h2>
+          <h2 className="section-title text-gradient">Neural Compatibilities...</h2>
           <div className="title-underline"></div>
         </div>
         <div className="skills-content">

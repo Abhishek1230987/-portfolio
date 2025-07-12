@@ -5,13 +5,8 @@ import './Projects.css';
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(6);
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   const fetchProjects = async () => {
     try {
@@ -27,6 +22,11 @@ const Projects = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProjects();
+}, []);
+
 
   const getSampleProjects = () => [
     {
@@ -117,12 +117,6 @@ const Projects = () => {
           ))}
         </div>
 
-        {error && (
-          <div className="error-message">
-            <i className="fas fa-exclamation-triangle"></i>
-            <span>{error}</span>
-          </div>
-        )}
 
         <div className="projects-grid">
           {visibleProjects.map((project, index) => (
