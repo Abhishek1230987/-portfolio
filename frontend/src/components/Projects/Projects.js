@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiService } from '../../services/api';
 import './Projects.css';
 
@@ -7,26 +7,6 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(6);
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const response = await apiService.projects.getAll({ featured: true });
-      setProjects(response.data || []);
-    } catch (err) {
-      
-      console.error('Error fetching projects:', err);
-      // Fallback to sample data if API fails
-      setProjects(getSampleProjects());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProjects();
-}, []);
-
 
   const getSampleProjects = () => [
     {
@@ -51,9 +31,27 @@ const Projects = () => {
       githubUrl: 'https://github.com/abhisheksingh/cyber-commerce',
       liveUrl: 'https://cyber-commerce.com'
     }
-    // Add more sample projects as needed
-    
   ];
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.projects.getAll({ featured: true });
+      setProjects(response.data || []);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      // Fallback to sample data if API fails
+      setProjects(getSampleProjects());
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+
 
   const getProjectIcon = (category) => {
     const icons = {

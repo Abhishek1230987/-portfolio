@@ -12,16 +12,6 @@ const Hero = () => {
   const [localMousePosition, setLocalMousePosition] = useState({ x: 0, y: 0 });
   const interactiveObjectRef = useRef(null);
   
-  const typewriterTexts = [
-    'NEURAL NETWORK ARCHITECT',
-    'QUANTUM COMPUTING SPECIALIST', 
-    'CYBERSECURITY EXPERT',
-    'AI/ML ENGINEER',
-    'BLOCKCHAIN DEVELOPER',
-    'FULL STACK DEVELOPER',
-    'CLOUD ARCHITECT'
-  ];
-  
   // Enhanced particle system
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -193,6 +183,16 @@ const Hero = () => {
   
   // Advanced typewriter effect
   useEffect(() => {
+    const typewriterTexts = [
+      'NEURAL NETWORK ARCHITECT',
+      'QUANTUM COMPUTING SPECIALIST', 
+      'CYBERSECURITY EXPERT',
+      'AI/ML ENGINEER',
+      'BLOCKCHAIN DEVELOPER',
+      'FULL STACK DEVELOPER',
+      'CLOUD ARCHITECT'
+    ];
+    
     let currentIndex = 0;
     let currentCharIndex = 0;
     let isDeleting = false;
@@ -229,7 +229,7 @@ const Hero = () => {
     
     const timer = setInterval(typeWriter, isDeleting ? 50 : 120);
     return () => clearInterval(timer);
-}, [currentText, typewriterTexts]);
+  }, []);
   
   // Hologram rotation effect
   useEffect(() => {
