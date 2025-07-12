@@ -24,7 +24,6 @@
     }
   ],
   "env": {
-    "DISCORD_WEBHOOK_URL": "@discord-webhook-url",
     "NODE_ENV": "production"
   }
 }
